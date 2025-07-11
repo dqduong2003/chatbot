@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f6f7fb;
       margin: 0;
       padding: 0;
       display: flex;
@@ -17,27 +17,27 @@
       min-height: 100vh;
     }
     .chat-container {
-      background: rgba(255,255,255,0.95);
-      border-radius: 18px;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10);
       width: 370px;
       max-width: 95vw;
       display: flex;
       flex-direction: column;
       height: 540px;
       overflow: hidden;
-      border: 1.5px solid rgba(102,126,234,0.18);
+      border: 1.5px solid #f3b15a33;
     }
     .chat-header {
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(90deg, #ff9800 0%, #fbc02d 100%);
       color: #fff;
-      padding: 20px 0 18px 0;
-      border-radius: 18px 18px 0 0;
+      padding: 18px 0 16px 0;
+      border-radius: 16px 16px 0 0;
       text-align: center;
-      font-size: 1.35em;
+      font-size: 1.25em;
       letter-spacing: 1px;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+      box-shadow: 0 2px 8px #ff98001a;
     }
     .chat-messages {
       flex: 1;
@@ -45,47 +45,77 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      background: linear-gradient(120deg, #f8fafc 60%, #e9e4f0 100%);
+      gap: 14px;
+      background: #f6f7fb;
+    }
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .message-row.user {
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #fff3e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #ff9800;
+      box-shadow: 0 1px 4px #ff98001a;
+      border: 1.5px solid #ffe0b2;
+    }
+    .avatar.user {
+      background: #e3f2fd;
+      color: #1976d2;
+      border: 1.5px solid #bbdefb;
     }
     .message {
-      max-width: 80%;
+      max-width: 75%;
       padding: 12px 16px;
-      border-radius: 18px;
+      border-radius: 16px;
       font-size: 1em;
       line-height: 1.5;
       word-break: break-word;
-      box-shadow: 0 1px 4px rgba(102,126,234,0.07);
+      box-shadow: 0 1px 4px #ff98001a;
       transition: background 0.2s;
+      position: relative;
     }
-    .user {
-      align-self: flex-end;
-      background: linear-gradient(90deg, #89f7fe 0%, #66a6ff 100%);
-      color: #222;
+    .message.user {
+      background: #1976d2;
+      color: #fff;
       border-bottom-right-radius: 4px;
-      border-top-right-radius: 18px;
-      border-top-left-radius: 18px;
+      border-top-right-radius: 16px;
+      border-top-left-radius: 16px;
+      align-self: flex-end;
     }
-    .bot {
-      align-self: flex-start;
-      background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
+    .message.bot {
+      background: #fff;
       color: #222;
+      border: 1.5px solid #ffe0b2;
       border-bottom-left-radius: 4px;
-      border-top-right-radius: 18px;
-      border-top-left-radius: 18px;
+      border-top-right-radius: 16px;
+      border-top-left-radius: 16px;
+      align-self: flex-start;
     }
     .chat-input {
       display: flex;
-      border-top: 1px solid #eee;
-      padding: 14px 12px;
-      background: #f6f7fb;
-      border-radius: 0 0 18px 18px;
-      box-shadow: 0 -2px 8px rgba(102,126,234,0.04);
+      border-top: 1px solid #ffe0b2;
+      padding: 12px 10px;
+      background: #fff8e1;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 -2px 8px #ff98001a;
     }
     .chat-input input {
       flex: 1;
       padding: 12px 14px;
-      border: 1.5px solid #b3b3e6;
+      border: 1.5px solid #ffe0b2;
       border-radius: 6px;
       font-size: 1em;
       outline: none;
@@ -93,24 +123,24 @@
       transition: border 0.2s;
     }
     .chat-input input:focus {
-      border: 1.5px solid #764ba2;
-      background: #f3f0fa;
+      border: 1.5px solid #ff9800;
+      background: #fffde7;
     }
     .chat-input button {
       margin-left: 10px;
       padding: 12px 22px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(90deg, #ff9800 0%, #fbc02d 100%);
       color: #fff;
       border: none;
       border-radius: 6px;
       font-size: 1em;
       font-weight: 500;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+      box-shadow: 0 2px 8px #ff98001a;
       transition: background 0.2s, transform 0.1s;
     }
     .chat-input button:hover {
-      background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+      background: linear-gradient(90deg, #fbc02d 0%, #ff9800 100%);
       transform: translateY(-2px) scale(1.04);
     }
     @media (max-width: 500px) {
@@ -129,7 +159,10 @@
   <div class="chat-container">
     <div class="chat-header">Beautiful Web Chatbot</div>
     <div class="chat-messages" id="chatMessages">
-      <div class="message bot">Hello! How can I help you today?</div>
+      <div class="message-row bot">
+        <div class="avatar bot">🤖</div>
+        <div class="message bot">Hello! How can I help you today?</div>
+      </div>
     </div>
     <form class="chat-input" id="chatForm">
       <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off" required />
@@ -150,20 +183,26 @@
       if (!userText) return;
 
       // Add user message
-      const userMsg = document.createElement('div');
-      userMsg.className = 'message user';
-      userMsg.textContent = userText;
-      chatMessages.appendChild(userMsg);
+      const userRow = document.createElement('div');
+      userRow.className = 'message-row user';
+      userRow.innerHTML = `
+        <div class="avatar user">🧑</div>
+        <div class="message user">${userText}</div>
+      `;
+      chatMessages.appendChild(userRow);
       chatMessages.scrollTop = chatMessages.scrollHeight;
 
       userInput.value = '';
 
       // Simulate bot response after a short delay
       setTimeout(() => {
-        const botMsg = document.createElement('div');
-        botMsg.className = 'message bot';
-        botMsg.textContent = BOT_RESPONSE;
-        chatMessages.appendChild(botMsg);
+        const botRow = document.createElement('div');
+        botRow.className = 'message-row bot';
+        botRow.innerHTML = `
+          <div class="avatar bot">🤖</div>
+          <div class="message bot">${BOT_RESPONSE}</div>
+        `;
+        chatMessages.appendChild(botRow);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }, 600);
     });
