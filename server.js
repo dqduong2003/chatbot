@@ -65,7 +65,7 @@ app.post('/api/chat', async (req, res) => {
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: "system",
@@ -76,7 +76,7 @@ app.post('/api/chat', async (req, res) => {
           content: msg.content
         }))
       ],
-      max_tokens: 150,
+      max_tokens: 200,
       temperature: 0.7
     });
 
