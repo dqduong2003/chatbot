@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversation Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .dashboard-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10);
+      width: 95vw;
+      max-width: 700px;
+      margin: 32px 0;
+      padding: 24px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    #conversationList button {
+      margin: 4px 0;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.98em;
+      width: 100%;
+      text-align: left;
+    }
+    #conversationList button:hover {
+      background: #ffe0b2;
+    }
+    #conversationDetail {
+      margin-top: 18px;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 1px 4px #0001;
+      font-size: 1em;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    #conversationDetail .msg {
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f3b15a33;
+    }
+    #conversationDetail .msg:last-child {
+      border-bottom: none;
+    }
+    .back-btn {
+      margin-top: 18px;
+      padding: 10px 22px;
+      background: #ff9800;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 500;
+      box-shadow: 0 2px 8px #ff98001a;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .back-btn:hover {
+      background: #fbc02d;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>Conversation Dashboard</h2>
+    <button id="refreshDashboardBtn">Refresh</button>
+    <div id="conversationList"></div>
+    <div id="conversationDetail"></div>
+    <button class="back-btn" onclick="window.location.href='index.html'">Back to Chat</button>
+  </div>
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    const refreshDashboardBtn = document.getElementById('refreshDashboardBtn');
+    const conversationListDiv = document.getElementById('conversationList');
+    const conversationDetailDiv = document.getElementById('conversationDetail');
+
+    async function loadConversations() {
+      conversationListDiv.innerHTML = 'Loading...';
+      conversationDetailDiv.innerHTML = '';
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/conversations`);
+        const conversations = await res.json();
+        console.log('Fetched conversations:', conversations);
+        conversationListDiv.innerHTML = '';
+        if (!conversations.length) {
+          conversationListDiv.innerHTML = '<em>No conversations found.</em>';
+          return;
+        }
+        conversations.forEach(conv => {
+          const wrapper = document.createElement('div');
+          wrapper.style.display = 'flex';
+          wrapper.style.alignItems = 'center';
+          wrapper.style.gap = '8px';
+
+          const btn = document.createElement('button');
+          btn.textContent = `${conv.conversation_id} (${new Date(conv.created_at).toLocaleString()})`;
+          btn.onclick = () => showConversation(conv);
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Delete';
+          delBtn.style.background = '#e57373';
+          delBtn.style.color = '#fff';
+          delBtn.style.border = 'none';
+          delBtn.style.borderRadius = '4px';
+          delBtn.style.padding = '6px 10px';
+          delBtn.style.cursor = 'pointer';
+          delBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (confirm('Delete this conversation?')) {
+              await deleteConversation(conv.conversation_id);
+              loadConversations();
+              conversationDetailDiv.innerHTML = '';
+            }
+          };
+
+          const analyzeBtn = document.createElement('button');
+          analyzeBtn.textContent = 'Analyze';
+          analyzeBtn.style.background = '#1976d2';
+          analyzeBtn.style.color = '#fff';
+          analyzeBtn.style.border = 'none';
+          analyzeBtn.style.borderRadius = '4px';
+          analyzeBtn.style.padding = '6px 10px';
+          analyzeBtn.style.cursor = 'pointer';
+          analyzeBtn.onclick = async (e) => {
+            e.stopPropagation();
+            conversationDetailDiv.innerHTML = '<em>Analyzing conversation...</em>';
+            try {
+              const res = await fetch(`${API_BASE_URL}/api/conversations/${conv.conversation_id}/analyze`, { method: 'POST' });
+              const result = await res.json();
+              if (result.info) {
+                showConversation(conv, result.info);
+              } else {
+                conversationDetailDiv.innerHTML = '<span style="color:red">Analysis failed.</span>';
+              }
+            } catch (err) {
+              conversationDetailDiv.innerHTML = '<span style="color:red">Error analyzing conversation.</span>';
+            }
+          };
+
+          wrapper.appendChild(btn);
+          wrapper.appendChild(analyzeBtn);
+          wrapper.appendChild(delBtn);
+          conversationListDiv.appendChild(wrapper);
+        });
+      } catch (err) {
+        conversationListDiv.innerHTML = '<span style="color:red">Failed to load conversations.</span>';
+      }
+    }
+
+    function showConversation(conv, info) {
+      conversationDetailDiv.innerHTML = `<h3>Conversation: ${conv.conversation_id}</h3>`;
+      if (!conv.messages || !conv.messages.length) {
+        conversationDetailDiv.innerHTML += '<em>No messages.</em>';
+        return;
+      }
+      conv.messages.forEach(msg => {
+        conversationDetailDiv.innerHTML += `
+          <div class="msg">
+            <b>${msg.role}</b>
+            <span style="color:#888">[${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''}]</span>:<br>
+            ${msg.content}
+          </div>
+        `;
+      });
+      if (info) {
+        conversationDetailDiv.innerHTML += `<hr><h4>Extracted Info</h4><pre style="background:#f3f3f3;padding:10px;border-radius:6px;">${JSON.stringify(info, null, 2)}</pre>`;
+      }
+    }
+
+    async function deleteConversation(conversation_id) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/conversations/${conversation_id}`, {
+          method: 'DELETE'
+        });
+        const result = await res.json();
+        if (!result.success) {
+          alert('Failed to delete conversation.');
+        }
+      } catch (err) {
+        alert('Error deleting conversation.');
+      }
+    }
+
+    if (refreshDashboardBtn) {
+      refreshDashboardBtn.addEventListener('click', loadConversations);
+    }
+    // Optionally, load on page load:
+    loadConversations();
+  </script>
+</body>
+</html> 
