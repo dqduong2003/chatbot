@@ -181,7 +181,7 @@
         `;
       });
       if (info) {
-        conversationDetailDiv.innerHTML += `<hr><h4>Extracted Info</h4><pre style="background:#f3f3f3;padding:10px;border-radius:6px;">${JSON.stringify(info, null, 2)}</pre>`;
+        conversationDetailDiv.innerHTML += `<hr><h4>Extracted Info</h4>${renderExtractedInfo(info)}`;
       }
     }
 
@@ -204,6 +204,21 @@
     }
     // Optionally, load on page load:
     loadConversations();
+
+    // Add this helper function at the end of the script
+    function renderExtractedInfo(info) {
+      return `<ul style="list-style:none;padding:0;">
+        <li><b>Name:</b> ${info.customerName || ''}</li>
+        <li><b>Email:</b> ${info.customerEmail || ''}</li>
+        <li><b>Phone:</b> ${info.customerPhone || ''}</li>
+        <li><b>Industry:</b> ${info.customerIndustry || ''}</li>
+        <li><b>Problem/Needs/Goals:</b> ${info.customerProblem || ''}</li>
+        <li><b>Availability:</b> ${info.customerAvailability || ''}</li>
+        <li><b>Consultation Booked:</b> ${info.customerConsultation !== undefined ? info.customerConsultation : ''}</li>
+        <li><b>Special Notes:</b> ${info.specialNotes || ''}</li>
+        <li><b>Lead Quality:</b> ${info.leadQuality || ''}</li>
+      </ul>`;
+    }
   </script>
 </body>
 </html> 
