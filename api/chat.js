@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     currentConversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
+    // new system prompt
   conversation.push({
     role: 'user',
     content: message,
