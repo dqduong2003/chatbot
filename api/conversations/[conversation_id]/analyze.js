@@ -43,9 +43,35 @@ export default async function handler(req, res) {
       throw new Error(`Make.com webhook failed: ${makeResponse.status} ${makeResponse.statusText}`);
     }
 
-    // Get the response from Make.com (extracted info)
-    const extractedInfo = await makeResponse.json();
-    console.log('Received extracted info from Make.com:', extractedInfo);
+    // Get the response from Make.com - handle both text and JSON
+    let extractedInfo;
+    const responseText = await makeResponse.text();
+    console.log('Raw response from Make.com:', responseText);
+
+    try {
+      // Try to parse as JSON first
+      extractedInfo = JSON.parse(responseText);
+    } catch (jsonError) {
+      console.log('Response is not JSON, treating as text response');
+      
+      // If it's not JSON, create a default response structure
+      // This handles cases where Make.com returns "Accepted" or similar text
+      extractedInfo = {
+        customerName: null,
+        customerEmail: null,
+        customerPhone: null,
+        customerIndustry: null,
+        customerProblem: null,
+        customerAvailability: null,
+        customerConsultation: false,
+        specialNotes: `Webhook response: ${responseText}`,
+        leadQuality: 'ok'
+      };
+      
+      console.log('Created default extracted info:', extractedInfo);
+    }
+
+    console.log('Final extracted info:', extractedInfo);
 
     // Update Supabase with extracted information (only columns that exist)
     const updateData = {
@@ -75,7 +101,8 @@ export default async function handler(req, res) {
     res.json({ 
       success: true, 
       info: extractedInfo,
-      message: 'Analysis completed successfully'
+      message: 'Analysis completed successfully',
+      webhookResponse: responseText
     });
 
   } catch (error) {
