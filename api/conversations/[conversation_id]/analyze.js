@@ -1,75 +1,88 @@
 import { createClient } from '@supabase/supabase-js';
-import { OpenAI } from 'openai';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
   const { conversation_id } = req.query;
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Fetch the conversation
-  const { data, error } = await supabase
-    .from('conversations')
-    .select('messages')
-    .eq('conversation_id', conversation_id)
-    .single();
-  if (error || !data) return res.status(404).json({ error: 'Conversation not found' });
+  try {
+    console.log('Analyzing conversation:', conversation_id);
 
-  // Prepare transcript
-  const transcript = data.messages.map(m => `${m.role}: ${m.content}`).join('\n');
+    // Fetch the conversation
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('messages')
+      .eq('conversation_id', conversation_id)
+      .single();
+    
+    if (error || !data) {
+      console.error('Conversation not found:', conversation_id);
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
 
-  // System prompt
-  const system_prompt = `Extract the following customer details from the transcript:
-- Name
-- Email address
-- Phone number
-- Industry
-- Problems, needs, and goals summary
-- Availability
-- Whether they have booked a consultation (true/false)
-- Any special notes
-- Lead quality (categorize as 'good', 'ok', or 'spam')
+    // Prepare data for Make.com webhook
+    const webhookData = {
+      conversationId: conversation_id,
+      messages: data.messages,
+      timestamp: new Date().toISOString()
+    };
 
-Format the response according to this JSON schema:
-{
-  "type": "object",
-  "properties": {
-    "customerName": { "type": "string" },
-    "customerEmail": { "type": "string" },
-    "customerPhone": { "type": "string" },
-    "customerIndustry": { "type": "string" },
-    "customerProblem": { "type": "string" },
-    "customerAvailability": { "type": "string" },
-    "customerConsultation": { "type": "boolean" },
-    "specialNotes": { "type": "string" },
-    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
-  },
-  "required": ["customerName", "customerEmail", "customerProblem", "leadQuality"]
-}
-good if user left contact detail and no if not.`;
+    console.log('Sending data to Make.com webhook:', webhookData);
 
-  // Call OpenAI
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4.1-mini',
-    messages: [
-      { role: 'system', content: system_prompt },
-      { role: 'user', content: transcript }
-    ],
-    response_format: { type: 'json_object' },
-    max_tokens: 512,
-    temperature: 0
-  });
+    // Send to Make.com webhook
+    const makeResponse = await fetch(process.env.MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookData)
+    });
 
-  const info = JSON.parse(completion.choices[0].message.content);
+    if (!makeResponse.ok) {
+      throw new Error(`Make.com webhook failed: ${makeResponse.status} ${makeResponse.statusText}`);
+    }
 
-  // Update the conversation row with extracted info
-  const { error: updateError } = await supabase
-    .from('conversations')
-    .update(info)
-    .eq('conversation_id', conversation_id);
+    // Get the response from Make.com (extracted info)
+    const extractedInfo = await makeResponse.json();
+    console.log('Received extracted info from Make.com:', extractedInfo);
 
-  if (updateError) return res.status(500).json({ error: updateError.message });
+    // Update Supabase with extracted information (only columns that exist)
+    const updateData = {
+      customerName: extractedInfo.customerName || null,
+      customerEmail: extractedInfo.customerEmail || null,
+      customerPhone: extractedInfo.customerPhone || null,
+      customerIndustry: extractedInfo.customerIndustry || null,
+      customerProblem: extractedInfo.customerProblem || null,
+      customerAvailability: extractedInfo.customerAvailability || null,
+      customerConsultation: extractedInfo.customerConsultation || false,
+      specialNotes: extractedInfo.specialNotes || null,
+      leadQuality: extractedInfo.leadQuality || null
+    };
 
-  res.json({ success: true, info });
+    const { error: updateError } = await supabase
+      .from('conversations')
+      .update(updateData)
+      .eq('conversation_id', conversation_id);
+
+    if (updateError) {
+      console.error('Error updating Supabase:', updateError);
+      throw new Error(`Failed to update database: ${updateError.message}`);
+    }
+
+    console.log('Analysis completed successfully for conversation:', conversation_id);
+
+    res.json({ 
+      success: true, 
+      info: extractedInfo,
+      message: 'Analysis completed successfully'
+    });
+
+  } catch (error) {
+    console.error('Error in analysis:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
 } 

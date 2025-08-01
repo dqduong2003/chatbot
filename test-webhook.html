@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make.com Webhook Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="url"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .sample-data {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .sample-data h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .sample-data pre {
+            background: white;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Make.com Webhook Test</h1>
+        
+        <div class="sample-data">
+            <h3>📋 Sample Data Preview</h3>
+            <p>This test will send a realistic customer conversation to your Make.com webhook. The data includes:</p>
+            <ul>
+                <li><strong>Customer:</strong> Daniel Johnson (Retailer)</li>
+                <li><strong>Email:</strong> khodeanh.dqd@gmail.com</li>
+                <li><strong>Phone:</strong> 555-123-4567</li>
+                <li><strong>Appointment:</strong> 2025-08-20 at 4 PM EST</li>
+                <li><strong>Lead Quality:</strong> High (provided contact details, specific needs)</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label for="webhookUrl">🔗 Make.com Webhook URL:</label>
+            <input type="url" id="webhookUrl" placeholder="https://hook.eu2.make.com/cc1v7ybg5hxf4mepikqzu0xhy739pkqd" />
+        </div>
+
+        <div class="form-group">
+            <button onclick="testWebhook()" id="testBtn">🚀 Test Webhook</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const sampleData = {
+            "conversationId": "conv_1753420874694_test_sample",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hi, I'm interested in AI solutions for my business",
+                    "timestamp": "2024-01-15T10:30:00Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Hello! I'd be happy to help you explore AI solutions for your business. To better understand your needs, could you tell me what industry you work in?",
+                    "timestamp": "2024-01-15T10:30:05Z"
+                },
+                {
+                    "role": "user",
+                    "content": "I work in Retailer. We have about 50 agents and we're looking to streamline our lead management process",
+                    "timestamp": "2024-01-15T10:30:15Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Excellent! Retailer is a perfect industry for AI optimization. What specific challenges are you facing with your lead management process?",
+                    "timestamp": "2024-01-15T10:30:20Z"
+                },
+                {
+                    "role": "user",
+                    "content": "We're spending too much time manually entering lead information from various sources, and our follow-up process is inconsistent. Some leads fall through the cracks",
+                    "timestamp": "2024-01-15T10:30:30Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "I understand those challenges! For Retailer, I'd recommend our customer data extraction service that can automatically pull information from documents and integrate with your CRM, plus a 24/7 chatbot for lead generation. Would you like to learn more about these solutions?",
+                    "timestamp": "2024-01-15T10:30:40Z"
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, that sounds exactly like what we need. Can you tell me more about the pricing?",
+                    "timestamp": "2024-01-15T10:30:50Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Our solutions start from $1000 USD, but the exact pricing depends on your specific requirements and scale. To provide you with a detailed quote, could I get your name?",
+                    "timestamp": "2024-01-15T10:31:00Z"
+                },
+                {
+                    "role": "user",
+                    "content": "My name is Daniel Johnson",
+                    "timestamp": "2024-01-15T10:31:10Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Great to meet you, Daniel! Could you provide your email address so I can send you more detailed information about our solutions?",
+                    "timestamp": "2024-01-15T10:31:15Z"
+                },
+                {
+                    "role": "user",
+                    "content": "khodeanh.dqd@gmail.com",
+                    "timestamp": "2024-01-15T10:31:25Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Perfect! And could I get your phone number for follow-up communication?",
+                    "timestamp": "2024-01-15T10:31:30Z"
+                },
+                {
+                    "role": "user",
+                    "content": "Sure, it's 555-123-4567",
+                    "timestamp": "2024-01-15T10:31:40Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Thank you, Daniel! Our AI-powered lead management solution will automatically extract customer data from documents, integrate seamlessly with your CRM, and provide 24/7 chatbot support for lead generation. This will save you significant time and ensure no leads are missed. Would you like to book a free consultation to discuss your specific implementation?",
+                    "timestamp": "2024-01-15T10:31:50Z"
+                },
+                {
+                    "role": "user",
+                    "content": "Yes, I'd love to book a consultation. When are you available?",
+                    "timestamp": "2024-01-15T10:32:00Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "I'd be happy to schedule a consultation for you! What date and time would work best for you? I'm available most weekdays between 9 AM and 5 PM EST.",
+                    "timestamp": "2024-01-15T10:32:10Z"
+                },
+                {
+                    "role": "user",
+                    "content": "How about 2025-08-20 at 4 PM EST?",
+                    "timestamp": "2024-01-15T10:32:20Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Perfect! I'll book you for 2025-08-20 at 4 PM EST. Before we end our conversation, do you have any specific questions about our AI solutions or any notes you'd like me to know before our consultation?",
+                    "timestamp": "2024-01-15T10:32:30Z"
+                },
+                {
+                    "role": "user",
+                    "content": "Just that we're looking to implement this within the next 3 months, and we'd like to see a demo of the chatbot during our call. Thanks!",
+                    "timestamp": "2024-01-15T10:32:40Z"
+                },
+                {
+                    "role": "assistant",
+                    "content": "Excellent! I've noted your timeline and demo request. I'll send you a calendar invitation and confirmation email shortly. We'll definitely include a live demo of our chatbot during our consultation. Thank you for your interest in MindTek AI, and I look forward to our meeting on Friday!",
+                    "timestamp": "2024-01-15T10:32:50Z"
+                }
+            ],
+            "timestamp": "2024-01-15T10:33:00Z"
+        };
+
+        async function testWebhook() {
+            const webhookUrl = document.getElementById('webhookUrl').value.trim();
+            const testBtn = document.getElementById('testBtn');
+            const resultDiv = document.getElementById('result');
+
+            if (!webhookUrl) {
+                showResult('❌ Please enter a valid webhook URL', 'error');
+                return;
+            }
+
+            if (!webhookUrl.startsWith('https://hook.eu1.make.com/')) {
+                showResult('⚠️ Warning: This doesn\'t look like a Make.com webhook URL. Make sure you\'re using the correct URL from your Make.com scenario.', 'info');
+            }
+
+            // Disable button and show loading
+            testBtn.disabled = true;
+            testBtn.textContent = '⏳ Sending...';
+            showResult('🔄 Sending test data to webhook...', 'info');
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(sampleData)
+                });
+
+                const responseText = await response.text();
+                
+                if (response.ok) {
+                    showResult(`✅ Webhook test successful!\n\nStatus: ${response.status} ${response.statusText}\nResponse: ${responseText || 'No response body'}`, 'success');
+                } else {
+                    showResult(`❌ Webhook test failed!\n\nStatus: ${response.status} ${response.statusText}\nResponse: ${responseText}`, 'error');
+                }
+
+            } catch (error) {
+                showResult(`❌ Error sending webhook: ${error.message}`, 'error');
+            } finally {
+                // Re-enable button
+                testBtn.disabled = false;
+                testBtn.textContent = '🚀 Test Webhook';
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        function clearResults() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'none';
+        }
+
+        // Auto-fill with a placeholder if empty
+        document.getElementById('webhookUrl').addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = 'https://hook.eu1.make.com/your-webhook-id';
+            }
+        });
+    </script>
+</body>
+</html> 
